@@ -3,7 +3,11 @@ const key = 'pylqNWCOTO3JryFoF3ySqTR-Q6JOiRgxYVbfktZ7qTg'
 const search = 'spooky'
 const count = 10
 const url = `https://api.unsplash.com/photos/random/?client_id=${key}&query=${search}&count=${count}`
+const loader = document.getElementById('loader')
 
+let ready = false
+let imagesLoaded = 0
+let totalImages
 let imgs
 
 let getPhotos = async () =>{
@@ -11,8 +15,19 @@ let getPhotos = async () =>{
         const response = await fetch(url)
         imgs = await response.json()
         imgs.forEach(img =>genImg(img))
+        totalImages = imgs.length
     } catch (error) {
         console.error(error)
+    }
+}
+
+let imgLoaded = ()=>{
+    imagesLoaded++
+    
+    if (imagesLoaded == totalImages){
+        ready = true
+        loader.hidden = true
+        console.log('ready =', ready)
     }
 }
 
@@ -24,8 +39,7 @@ let genImg = (pic) =>{
         'href': pic.links.html,
         'target': '_blank',
     });
-    // anchor.setAttribute('href', pic.links.html)
-    // anchor.setAttribute('target', '_blank')
+
     
     const img = document.createElement('img')
     setAttributes(img, {
@@ -33,12 +47,12 @@ let genImg = (pic) =>{
         'alt': pic.alt_description,
         'title': pic.alt_description,
     });
-    // img.setAttribute('src', pic.urls.regular)
-    // img.setAttribute('alt', pic.alt_description)
-    // img.setAttribute('title', pic.alt_description)
+   
 
     anchor.appendChild(img)
     imgContainer.appendChild(anchor)
+
+    img.addEventListener('load', imgLoaded)
 }
 
 function setAttributes(ele, attrs){
@@ -47,4 +61,13 @@ function setAttributes(ele, attrs){
         ele.setAttribute(key, val)
     }
 }
+
+window.addEventListener('scroll',()=>{
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000 && ready){
+        ready = false
+        imagesLoaded = 0
+        getPhotos()
+    }
+})
+
 getPhotos()
